@@ -22,6 +22,43 @@ header{background:white;border-bottom:3px solid var(--primary);padding:16px 32px
 header h1{font-size:18px;font-weight:700;}
 header span{font-size:12px;color:var(--gray-400);margin-left:4px;}
 .container{max-width:1020px;margin:0 auto;padding:32px 16px;}
+
+/* ヒーローエリア */
+.hero{background:linear-gradient(135deg,#E85D26 0%,#C4461B 100%);border-radius:16px;padding:32px 36px;margin-bottom:28px;color:white;display:flex;align-items:flex-start;gap:24px;}
+.hero-icon{font-size:48px;flex-shrink:0;line-height:1;}
+.hero-text h2{font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-.3px;}
+.hero-text p{font-size:14px;line-height:1.8;opacity:.92;}
+.hero-text p strong{font-weight:700;background:rgba(255,255,255,.2);padding:1px 6px;border-radius:4px;}
+
+/* フローガイド */
+.flow-guide{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:28px;background:white;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden;}
+.flow-step{padding:20px 16px;text-align:center;position:relative;}
+.flow-step:not(:last-child)::after{content:'▶';position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:var(--primary);font-size:14px;z-index:1;}
+.flow-step:not(:last-child){border-right:1px solid var(--gray-100);}
+.flow-step-num{width:30px;height:30px;background:var(--primary);color:white;border-radius:50%;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.flow-step-icon{font-size:26px;margin-bottom:8px;}
+.flow-step-title{font-size:13px;font-weight:700;color:var(--gray-800);margin-bottom:4px;}
+.flow-step-desc{font-size:11px;color:var(--gray-400);line-height:1.6;}
+
+/* ルール説明 */
+.rule-guide{background:white;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:28px;overflow:hidden;}
+.rule-guide-header{padding:16px 20px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.rule-guide-header h3{font-size:14px;font-weight:700;flex:1;}
+.rule-guide-body{padding:20px;display:none;}
+.rule-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.rule-card{border-radius:10px;padding:14px 16px;border:1px solid;}
+.rule-card.priority1{background:#FFFBEB;border-color:#FDE68A;}
+.rule-card.priority2{background:var(--purple-light);border-color:#DDD6FE;}
+.rule-card.priority3{background:var(--blue-light);border-color:#BFDBFE;}
+.rule-card-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-bottom:8px;}
+.rule-card.priority1 .rule-card-badge{background:#FCD34D;color:#78350F;}
+.rule-card.priority2 .rule-card-badge{background:#DDD6FE;color:#4C1D95;}
+.rule-card.priority3 .rule-card-badge{background:#BFDBFE;color:#1E3A8A;}
+.rule-card-title{font-size:13px;font-weight:700;color:var(--gray-800);margin-bottom:6px;}
+.rule-card-desc{font-size:12px;color:var(--gray-600);line-height:1.7;}
+.priority-arrow{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;font-size:12px;color:var(--gray-400);}
+.priority-arrow span{background:var(--gray-100);padding:4px 10px;border-radius:6px;font-weight:600;color:var(--gray-600);}
+
 .info-box{background:var(--yellow-light);border:1px solid #FDE68A;border-radius:10px;padding:14px 18px;margin-bottom:24px;font-size:13px;color:#92400E;line-height:1.6;}
 .info-box strong{color:#78350F;}
 .card{background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px;overflow:hidden;}
@@ -100,7 +137,16 @@ header span{font-size:12px;color:var(--gray-400);margin-left:4px;}
 .kw-section .kw-label{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:8px;}
 .hint{font-size:11px;color:var(--gray-400);margin-top:6px;}
 .priority-note{background:var(--blue-light);border:1px solid #BFDBFE;border-radius:8px;padding:10px 14px;font-size:12px;color:#1E40AF;margin-bottom:16px;line-height:1.7;}
-@media(max-width:640px){.two-col{grid-template-columns:1fr;}.stats-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:640px){
+  .two-col{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:repeat(3,1fr);}
+  .flow-guide{grid-template-columns:repeat(2,1fr);}
+  .flow-step:nth-child(2)::after{display:none;}
+  .rule-cards{grid-template-columns:1fr;}
+  .hero{flex-direction:column;gap:12px;padding:22px 20px;}
+  .hero-icon{font-size:36px;}
+  .hero-text h2{font-size:18px;}
+}
 </style>
 </head>
 <body>
@@ -112,8 +158,80 @@ header span{font-size:12px;color:var(--gray-400);margin-left:4px;}
 
 <div class="container">
 
-  <div class="info-box">
-    <strong>処理概要：</strong>楽天在庫CSV（システム連携用SKU番号・在庫数）と商品データXLSX（品番・ロット）を照合し、発注ルール（品名キーワード個数・品番キーワード個数・品番プレフィックスロット換算）を評価して発注書を自動生成します。複数ルールにマッチした場合は<strong>最も厳しい条件（閾値が高い方）</strong>を採用します。
+  <!-- ヒーロー -->
+  <div class="hero">
+    <div class="hero-icon">📋</div>
+    <div class="hero-text">
+      <h2>ECプロパー 発注書作成ツール</h2>
+      <p>
+        GoQ Systemの<strong>在庫CSV</strong>と、サイボウズの<strong>商品データXLSX</strong>を読み込み、設定した発注ルールに基づいて<strong>発注が必要な商品を自動で判定</strong>します。<br>
+        ファイルを2つアップロードしてボタンを押すだけで、発注書Excelが自動生成されます。
+      </p>
+    </div>
+  </div>
+
+  <!-- 使い方フロー -->
+  <div class="flow-guide">
+    <div class="flow-step">
+      <div class="flow-step-num">1</div>
+      <div class="flow-step-icon">⚙️</div>
+      <div class="flow-step-title">発注ルール確認</div>
+      <div class="flow-step-desc">品番・キーワードごとの閾値・発注数を確認・編集（通常は変更不要）</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">2</div>
+      <div class="flow-step-icon">📦</div>
+      <div class="flow-step-title">在庫CSVを読込</div>
+      <div class="flow-step-desc">GoQ Systemから出力した楽天市場店の在庫CSVをドロップ</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">3</div>
+      <div class="flow-step-icon">📊</div>
+      <div class="flow-step-title">商品データを読込</div>
+      <div class="flow-step-desc">サイボウズから取得した最新の商品データXLSXをドロップ</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">4</div>
+      <div class="flow-step-icon">⬇️</div>
+      <div class="flow-step-title">発注書を生成</div>
+      <div class="flow-step-desc">ボタンを押すだけで発注書Excelが自動ダウンロード</div>
+    </div>
+  </div>
+
+  <!-- 発注ルール説明 -->
+  <div class="rule-guide">
+    <div class="rule-guide-header" onclick="toggleRuleGuide(this)">
+      <span style="font-size:16px">💡</span>
+      <h3>発注判定のしくみ（クリックで確認）</h3>
+      <span id="ruleGuideIcon" style="color:var(--gray-400);font-size:16px;">▼</span>
+    </div>
+    <div class="rule-guide-body" id="ruleGuideBody">
+      <div class="rule-cards">
+        <div class="rule-card priority1">
+          <div class="rule-card-badge">① 最優先</div>
+          <div class="rule-card-title">⭐ 品番個別指定ルール</div>
+          <div class="rule-card-desc">特定の品番に対して「在庫がN個以下になったらM個発注」と個別に設定。他のルールより必ず優先されます。</div>
+        </div>
+        <div class="rule-card priority2">
+          <div class="rule-card-badge">② キーワードルール</div>
+          <div class="rule-card-title">🏷️ 品名・品番キーワード</div>
+          <div class="rule-card-desc">品名や品番に特定キーワードを含む場合に閾値を適用。複数マッチした場合は<strong>閾値が高い（厳しい）方</strong>を採用します。</div>
+        </div>
+        <div class="rule-card priority3">
+          <div class="rule-card-badge">③ デフォルト</div>
+          <div class="rule-card-title">📦 デフォルトルール</div>
+          <div class="rule-card-desc">どのルールにも該当しない商品は「在庫が0個以下になったら1ロット発注」を自動適用します。</div>
+        </div>
+      </div>
+      <div class="priority-arrow">
+        <span>① 品番個別指定</span>
+        <span style="background:none;color:var(--primary);font-weight:800;">→</span>
+        <span>② キーワード</span>
+        <span style="background:none;color:var(--primary);font-weight:800;">→</span>
+        <span>③ デフォルト</span>
+        <span style="margin-left:8px;font-size:11px;">上位ルールが優先されます</span>
+      </div>
+    </div>
   </div>
 
   <!-- Step 1: 発注ルール設定（アコーディオン） -->
@@ -437,6 +555,17 @@ const INIT_HINBAN_RULES = [
   { keyword: 'BMK-', threshold: 5, memo: '' },
 ];
 // INIT_PREFIX_RULES は廃止（品番KWルールに統合）
+
+// =====================================================
+// 使い方ガイド アコーディオン
+// =====================================================
+function toggleRuleGuide(header) {
+  const body = document.getElementById('ruleGuideBody');
+  const icon = document.getElementById('ruleGuideIcon');
+  const open = body.style.display === 'none' || body.style.display === '';
+  body.style.display = open ? 'block' : 'none';
+  icon.textContent   = open ? '▲' : '▼';
+}
 
 // =====================================================
 // タブ切り替え
