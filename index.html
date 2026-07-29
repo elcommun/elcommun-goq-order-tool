@@ -784,6 +784,7 @@ function resolvePartCode(rawPn) {
     const result = parts.slice(2).join('-');
     if (/^X?DR-/.test(result)) return null;
     if (/^CRB-/.test(result))  return null; // CRB-系は発注対象外
+    if (/^XEC-/.test(result))  return null; // XEC-系は発注対象外
     return result;
   }
   return null;
@@ -1020,6 +1021,8 @@ function _doGenerateMain() {
   const sorted = [...csvData.stockMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
   for (const [partCode, currentStock] of sorted) {
+    if (/^XEC-/.test(partCode)) continue; // XEC-系は発注対象外
+
     const prod = xlsxData.productMap.get(partCode);
     if (!prod) {
       notFound++;
