@@ -1021,10 +1021,11 @@ function _doGenerateMain() {
     needOrder++;
     if (haiban) haibanCount++;
 
-    // 備考：廃番優先、在庫切れは廃番でない場合のみ表示
+    // 備考：廃番かつ在庫切れは併記、それ以外は単独表示
     let biko = '';
-    if (haiban)                 biko = '廃番';
-    else if (currentStock <= 0) biko = '在庫切れ';
+    if (haiban && currentStock <= 0) biko = '廃番＋在庫切れ';
+    else if (haiban)                 biko = '廃番';
+    else if (currentStock <= 0)      biko = '在庫切れ';
 
     // 発注ロット数：個別指定の場合は発注数÷ロットで算出
     const orderLotsDisplay = rule.orderQtyFixed !== null
