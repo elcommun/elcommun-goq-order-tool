@@ -1085,6 +1085,21 @@ function _doGenerateMain() {
   wsOrder['!cols'] = [{wch:18},{wch:26},{wch:8},{wch:12},{wch:8},{wch:28},{wch:10},{wch:12},{wch:12},{wch:20}];
   XLSX.utils.book_append_sheet(wb, wsOrder, '発注書');
 
+  // 廃番商品シート（在庫の多寡に関係なく、廃番フラグが立っている商品を全件書き出す）
+  const haibanList = [];
+  for (const [hinban, prod] of xlsxData.productMap) {
+    if (!prod.haiban) continue;
+    const stock = csvData.stockMap.has(hinban) ? csvData.stockMap.get(hinban) : 0;
+    haibanList.push([hinban, prod.hinmei, stock]);
+  }
+  haibanList.sort((a, b) => a[0].localeCompare(b[0]));
+  if (haibanList.length) {
+    const wsHaiban = XLSX.utils.aoa_to_sheet([['品番','品名','在庫数（GoQ）'], ...haibanList]);
+    wsHaiban['!cols'] = [{wch:18},{wch:26},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, wsHaiban, '廃番商品');
+  }
+  log(`🗑️ 廃番商品：${haibanList.length}件を書き出し`, 'log-info');
+
   // 未発見シート
   if (notFoundList.length) {
     const wsNF = XLSX.utils.aoa_to_sheet([
