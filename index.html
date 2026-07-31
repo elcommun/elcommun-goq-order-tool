@@ -88,6 +88,7 @@ header span{font-size:12px;color:var(--gray-400);margin-left:4px;}
 .primary-btn{width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
 .primary-btn:hover:not(:disabled){background:var(--primary-dark);}
 .primary-btn:disabled{background:var(--gray-400);cursor:not-allowed;}
+#haibanBtn:hover:not(:disabled){background:var(--gray-800)!important;}
 /* ログ */
 .log-box{margin-top:16px;background:var(--gray-800);color:#D1FAE5;border-radius:8px;padding:16px;font-size:12px;font-family:'Courier New',monospace;line-height:1.8;max-height:420px;overflow-y:auto;display:none;}
 .log-box.show{display:block;}
@@ -99,6 +100,7 @@ header span{font-size:12px;color:var(--gray-400);margin-left:4px;}
 .result-section h3{color:#065F46;font-size:16px;margin-bottom:12px;}
 .dl-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--green);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;}
 .dl-btn:hover{background:#059669;}
+#dlBtnHaiban:hover{background:var(--gray-800)!important;}
 .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px;}
 .stat{background:white;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--gray-200);}
 .stat .num{font-size:20px;font-weight:800;color:var(--primary);}
@@ -359,20 +361,30 @@ header span{font-size:12px;color:var(--gray-400);margin-left:4px;}
 
   <!-- Step 4: 実行 -->
   <div class="card">
-    <div class="card-header"><div class="step">4</div><h2>発注書を生成</h2></div>
+    <div class="card-header"><div class="step">4</div><h2>出力する</h2></div>
     <div class="card-body">
       <button class="primary-btn" id="actionBtn" disabled onclick="doGenerate()">
         <span id="actionBtnLabel">📋 発注書Excelを生成する</span>
+      </button>
+      <button class="primary-btn" id="haibanBtn" disabled onclick="doGenerateHaiban()" style="margin-top:10px;background:var(--gray-600);">
+        <span id="haibanBtnLabel">🗑️ 廃番一覧Excelを生成する</span>
       </button>
       <div class="log-box" id="logBox"></div>
     </div>
   </div>
 
-  <!-- 結果 -->
+  <!-- 結果（発注書） -->
   <div class="result-section" id="resultSection">
     <h3>✅ 発注書の生成が完了しました！</h3>
     <button class="dl-btn" id="dlBtn">⬇️ 発注書をダウンロード</button>
     <div class="stats-grid" id="statsGrid"></div>
+  </div>
+
+  <!-- 結果（廃番一覧） -->
+  <div class="result-section" id="resultSectionHaiban">
+    <h3>✅ 廃番一覧の生成が完了しました！</h3>
+    <button class="dl-btn" id="dlBtnHaiban" style="background:var(--gray-600);">⬇️ 廃番一覧をダウンロード</button>
+    <div class="stats-grid" id="statsGridHaiban" style="grid-template-columns:1fr;"></div>
   </div>
 
 </div>
@@ -1085,21 +1097,6 @@ function _doGenerateMain() {
   wsOrder['!cols'] = [{wch:18},{wch:26},{wch:8},{wch:12},{wch:8},{wch:28},{wch:10},{wch:12},{wch:12},{wch:20}];
   XLSX.utils.book_append_sheet(wb, wsOrder, '発注書');
 
-  // 廃番商品シート（在庫の多寡に関係なく、GoQ在庫CSVに存在する自社商品のうち廃番フラグが立っているものを書き出す）
-  const haibanList = [];
-  for (const [hinban, stock] of csvData.stockMap) {
-    const prod = xlsxData.productMap.get(hinban);
-    if (!prod || !prod.haiban) continue;
-    haibanList.push([hinban, prod.hinmei, stock]);
-  }
-  haibanList.sort((a, b) => a[0].localeCompare(b[0]));
-  if (haibanList.length) {
-    const wsHaiban = XLSX.utils.aoa_to_sheet([['品番','品名','在庫数（GoQ）'], ...haibanList]);
-    wsHaiban['!cols'] = [{wch:18},{wch:26},{wch:12}];
-    XLSX.utils.book_append_sheet(wb, wsHaiban, '廃番商品');
-  }
-  log(`🗑️ 廃番商品：${haibanList.length}件を書き出し`, 'log-info');
-
   // 未発見シート
   if (notFoundList.length) {
     const wsNF = XLSX.utils.aoa_to_sheet([
@@ -1130,6 +1127,61 @@ function _doGenerateMain() {
 }
 
 // =====================================================
+// 廃番一覧生成（発注書とは独立して単体で出力）
+// =====================================================
+function doGenerateHaiban() {
+  if (!csvData || !xlsxData) return;
+
+  const btn = document.getElementById('haibanBtn');
+  const btnLabel = document.getElementById('haibanBtnLabel');
+  btn.disabled = true;
+  btnLabel.textContent = '⏳ 処理中...';
+
+  setTimeout(() => {
+    _doGenerateHaibanMain();
+    btn.disabled = false;
+    btnLabel.textContent = '🗑️ 廃番一覧Excelを生成する';
+  }, 50);
+}
+
+function _doGenerateHaibanMain() {
+  document.getElementById('logBox').innerHTML = '';
+  document.getElementById('logBox').classList.add('show');
+  document.getElementById('resultSectionHaiban').classList.remove('show');
+
+  log('🚀 廃番一覧の生成開始...', 'log-info');
+
+  // 在庫の多寡に関係なく、GoQ在庫CSVに存在する自社商品のうち廃番フラグが立っているものを書き出す
+  const haibanList = [];
+  for (const [hinban, stock] of csvData.stockMap) {
+    const prod = xlsxData.productMap.get(hinban);
+    if (!prod || !prod.haiban) continue;
+    haibanList.push([hinban, prod.hinmei, stock]);
+  }
+  haibanList.sort((a, b) => a[0].localeCompare(b[0]));
+
+  log(`🗑️ 廃番商品：${haibanList.length}件`, 'log-info');
+
+  const wb = XLSX.utils.book_new();
+  const wsHaiban = XLSX.utils.aoa_to_sheet([['品番','品名','在庫数（GoQ）'], ...haibanList]);
+  wsHaiban['!cols'] = [{wch:18},{wch:26},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsHaiban, '廃番商品');
+
+  const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const fname = `${today}-廃番一覧.xlsx`;
+  XLSX.writeFile(wb, fname);
+  document.getElementById('dlBtnHaiban').onclick = () => XLSX.writeFile(wb, fname);
+
+  log('──────────────────────────────', 'log-sep');
+  log(`📊 完了 | 廃番商品：${haibanList.length}件を出力`, 'log-info');
+
+  document.getElementById('statsGridHaiban').innerHTML = `
+    <div class="stat"><div class="num">${haibanList.length}</div><div class="label">廃番商品数</div></div>
+  `;
+  document.getElementById('resultSectionHaiban').classList.add('show');
+}
+
+// =====================================================
 // ユーティリティ
 // =====================================================
 function setStatus(id, type, msg) {
@@ -1138,7 +1190,9 @@ function setStatus(id, type, msg) {
   el.innerHTML = `<div class="file-status ${cls}">${msg}</div>`;
 }
 function checkReady() {
-  document.getElementById('actionBtn').disabled = !(csvData && xlsxData);
+  const ready = !!(csvData && xlsxData);
+  document.getElementById('actionBtn').disabled = !ready;
+  document.getElementById('haibanBtn').disabled = !ready;
 }
 function log(msg, cls='') {
   const box = document.getElementById('logBox');
