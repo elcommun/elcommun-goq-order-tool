@@ -765,9 +765,6 @@ function resolvePartCode(rawPn) {
   const pn = rawPn.trim();
   if (/^elco-(ECL|LLN)-/i.test(pn))
     return pn.replace(/^elco-/, '').replace(/wf-(brown|natural)/gi, '').trim();
-  // elco- を外すだけで品番になるシリーズ（PNT, DCL など）
-  if (/^elco-(PNT|DCL)-\d+$/i.test(pn))
-    return pn.replace(/^elco-/, '').toUpperCase();
   let m = pn.match(/^elco-(WCL-\d+)$/);              if (m) return m[1];
   m = pn.match(/^elco-wcl(\d+)$/i);                  if (m) return 'WCL-' + m[1];
   m = pn.match(/^elco-wcl-\d+(WCL-\d+)$/i);         if (m) return m[1];
@@ -779,6 +776,9 @@ function resolvePartCode(rawPn) {
   m = pn.match(/^elco-lbg(\w+)$/i);                  if (m) return null; // LBG-系は発注対象外
   m = pn.match(/^cal-.+-(CAL-[\w-]+)$/i);            if (m) return m[1].toUpperCase();
   if (/^elco-[^-]+-X?DR-/.test(pn)) return null;
+  // elco- を外すだけで「プレフィックス-英数字」の品番になるシリーズ（PNT, DCL, AMP など。3セグメント構成）
+  m = pn.match(/^elco-([A-Za-z]{2,5})-([A-Za-z0-9]+)$/);
+  if (m) return `${m[1].toUpperCase()}-${m[2].toUpperCase()}`;
   const parts = pn.split('-');
   if (parts.length >= 3 && parts[0] === 'elco') {
     const result = parts.slice(2).join('-');
