@@ -182,7 +182,7 @@ header span{font-size:12px;color:var(--gray-400);margin-left:4px;}
       <div class="flow-step-num">2</div>
       <div class="flow-step-icon">📦</div>
       <div class="flow-step-title">在庫CSVを読込</div>
-      <div class="flow-step-desc">GoQ Systemから出力した楽天市場店の在庫CSVをドロップ</div>
+      <div class="flow-step-desc">GoQ Systemから出力した「itemdata_」で始まる在庫CSVをドロップ</div>
     </div>
     <div class="flow-step">
       <div class="flow-step-num">3</div>
@@ -322,13 +322,13 @@ header span{font-size:12px;color:var(--gray-400);margin-left:4px;}
   <!-- Step 2 & 3: ファイルアップロード -->
   <div class="two-col">
     <div class="card">
-      <div class="card-header"><div class="step">2</div><h2>在庫CSV <span class="sub">GoQ System出力</span></h2></div>
+      <div class="card-header"><div class="step">2</div><h2>在庫CSV <span class="sub">GoQ System出力（itemdata）</span></h2></div>
       <div class="card-body">
         <div class="upload-zone" id="zoneCSV">
           <input type="file" accept=".csv" id="fileCSV" onchange="loadCSV(this)">
           <div class="upload-icon">📦</div>
           <p>在庫CSVをドロップ</p>
-          <small>「システム連携用SKU番号」「在庫数」列を含む（Shift_JIS）</small>
+          <small>ファイル名「itemdata_」から始まるCSV／「システム連携用SKU番号」「在庫数」列を含む（Shift_JIS）</small>
         </div>
         <div style="margin-top:10px;padding:10px 14px;background:var(--blue-light);border:1px solid #BFDBFE;border-radius:8px;font-size:12px;color:#1E40AF;line-height:1.8;">
           <strong>📥 CSVのダウンロード方法（GoQ System）</strong><br>
@@ -1085,11 +1085,11 @@ function _doGenerateMain() {
   wsOrder['!cols'] = [{wch:18},{wch:26},{wch:8},{wch:12},{wch:8},{wch:28},{wch:10},{wch:12},{wch:12},{wch:20}];
   XLSX.utils.book_append_sheet(wb, wsOrder, '発注書');
 
-  // 廃番商品シート（在庫の多寡に関係なく、廃番フラグが立っている商品を全件書き出す）
+  // 廃番商品シート（在庫の多寡に関係なく、GoQ在庫CSVに存在する自社商品のうち廃番フラグが立っているものを書き出す）
   const haibanList = [];
-  for (const [hinban, prod] of xlsxData.productMap) {
-    if (!prod.haiban) continue;
-    const stock = csvData.stockMap.has(hinban) ? csvData.stockMap.get(hinban) : 0;
+  for (const [hinban, stock] of csvData.stockMap) {
+    const prod = xlsxData.productMap.get(hinban);
+    if (!prod || !prod.haiban) continue;
     haibanList.push([hinban, prod.hinmei, stock]);
   }
   haibanList.sort((a, b) => a[0].localeCompare(b[0]));
